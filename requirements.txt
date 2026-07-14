@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 altair==6.2.2
 anyio==4.12.1
 argon2-cffi==25.1.0
@@ -118,3 +119,6 @@ webcolors==25.10.0
 webencodings==0.5.1
 websocket-client==1.9.0
 websockets==16.1
+=======
+
+>>>>>>> be0787f655c9530bedf83fcdd81fe88a235f446f
