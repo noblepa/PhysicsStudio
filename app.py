@@ -85,7 +85,7 @@ if st.session_state.simulation == "home":
 
     with col3:
 
-        st.markdown("### 🚀 Projectile Motion")
+        st.markdown("### 🦋 Butterfly Effect / 🌀 Lorenz Attractor")
 
         st.write("Coming Soon")
 
