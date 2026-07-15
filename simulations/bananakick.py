@@ -6,7 +6,7 @@ ball speed, launch angle, spin, and pitch geometry in the sidebar and
 watch the trajectory, top-down curve, and side view update live.
 
 """
-
+def run(): 
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")

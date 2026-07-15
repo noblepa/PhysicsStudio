@@ -1,8 +1,10 @@
 import streamlit as st
 
-# ---------------------------------------------------
+from simulations import bananakick
+
+# -------------------------------------------------------
 # Page Configuration
-# ---------------------------------------------------
+# -------------------------------------------------------
 
 st.set_page_config(
     page_title="Physics Studio",
@@ -10,274 +12,77 @@ st.set_page_config(
     layout="wide"
 )
 
-# ---------------------------------------------------
-# Custom CSS
-# ---------------------------------------------------
+# -------------------------------------------------------
+# Sidebar
+# -------------------------------------------------------
 
-st.markdown("""
-<style>
+st.sidebar.title("⚛️ Physics Studio")
 
-.hero{
-    padding-top:40px;
-    padding-bottom:40px;
-}
+page = st.sidebar.radio(
+    "Navigate",
+    [
+        "Home",
+        "Banana Kick"
+    ]
+)
 
-.big-title{
-    font-size:60px;
-    font-weight:700;
-    color:#1565C0;
-}
+# -------------------------------------------------------
+# HOME PAGE
+# -------------------------------------------------------
 
-.subtitle{
-    font-size:28px;
-    color:#555;
-}
+if page == "Home":
 
-.section-title{
-    font-size:32px;
-    font-weight:600;
-    margin-top:30px;
-}
+    st.title("⚛️ Physics Studio")
 
-.feature-box{
-    padding:20px;
-    border-radius:12px;
-    background:#F7F9FC;
-    border:1px solid #E0E0E0;
-    height:210px;
-}
+    st.subheader("Visualize • Explore • Discover")
 
-.footer{
-    text-align:center;
-    color:gray;
-    margin-top:40px;
-}
+    st.write(
+        """
+        Welcome to **Physics Studio**, an interactive collection of
+        physics simulations built using Python, Streamlit and Plotly.
 
-</style>
-""", unsafe_allow_html=True)
-
-# ---------------------------------------------------
-# Hero
-# ---------------------------------------------------
-
-st.markdown('<div class="hero">', unsafe_allow_html=True)
-
-col1, col2 = st.columns([3,1])
-
-with col1:
-
-    st.markdown(
-        '<div class="big-title">⚛️ Physics Studio</div>',
-        unsafe_allow_html=True
+        Explore classical mechanics, waves, optics,
+        electromagnetism, thermodynamics, quantum physics,
+        astronomy and much more.
+        """
     )
 
-    st.markdown(
-        '<div class="subtitle">Visualize. Explore. Discover.</div>',
-        unsafe_allow_html=True
-    )
+    st.divider()
 
-    st.write("")
+    st.header("Available Simulations")
 
-    st.write("""
-Interactive simulations that bring Physics to life.
+    col1, col2, col3 = st.columns(3)
 
-Explore the laws of nature through real numerical simulations,
-interactive graphs and beautiful visualisations.
-""")
+    with col1:
 
-    st.button("🚀 Launch Simulation")
+        st.markdown("### ⚽ Banana Kick")
 
-with col2:
+        st.write(
+            """
+            Explore the Magnus effect and understand how
+            spin bends the trajectory of a football.
+            """
+        )
 
-    st.image(
-        "https://upload.wikimedia.org/wikipedia/commons/5/58/Atom_symbol.svg",
-        use_container_width=True
-    )
+        if st.button("Launch Banana Kick"):
+            st.session_state.page = "Banana Kick"
 
-st.divider()
+    with col2:
 
-# ---------------------------------------------------
-# Why Physics Studio
-# ---------------------------------------------------
+        st.markdown("### 🕰 Pendulum")
 
-st.markdown(
-    '<div class="section-title">Why Physics Studio?</div>',
-    unsafe_allow_html=True
-)
+        st.write("Coming Soon")
 
-st.write("""
+    with col3:
 
-Physics is best learned by experimentation.
+        st.markdown("### 🚀 Projectile Motion")
 
-Instead of memorising equations,
-change parameters and immediately observe
-their effect on the physical system.
+        st.write("Coming Soon")
 
-Every simulation is built from the governing equations
-and solved numerically using Python.
+# -------------------------------------------------------
+# BANANA KICK
+# -------------------------------------------------------
 
-""")
+elif page == "Banana Kick":
 
-# ---------------------------------------------------
-# Topics
-# ---------------------------------------------------
-
-st.markdown(
-    '<div class="section-title">Explore Physics</div>',
-    unsafe_allow_html=True
-)
-
-c1,c2,c3 = st.columns(3)
-
-with c1:
-
-    st.markdown("""
-<div class="feature-box">
-
-### ⚙️ Mechanics
-
-- Projectile Motion
-- Pendulum
-- Double Pendulum
-- Banana Kick
-- Coriolis Force
-- Circular Motion
-
-</div>
-""",unsafe_allow_html=True)
-
-with c2:
-
-    st.markdown("""
-<div class="feature-box">
-
-### 🌊 Waves & Optics
-
-- Standing Waves
-- Interference
-- Diffraction
-- Refraction
-- Doppler Effect
-- Polarisation
-
-</div>
-""",unsafe_allow_html=True)
-
-with c3:
-
-    st.markdown("""
-<div class="feature-box">
-
-### ⚡ Modern Physics
-
-- Electric Fields
-- Magnetism
-- Quantum Physics
-- Thermodynamics
-- Astronomy
-- Relativity
-
-</div>
-""",unsafe_allow_html=True)
-
-# ---------------------------------------------------
-# Features
-# ---------------------------------------------------
-
-st.markdown(
-    '<div class="section-title">Features</div>',
-    unsafe_allow_html=True
-)
-
-col1,col2,col3=st.columns(3)
-
-with col1:
-    st.success("Interactive Controls")
-    st.write("Adjust parameters using sliders and instantly observe the results.")
-
-with col2:
-    st.success("Real-time Graphs")
-    st.write("Powered by Plotly for smooth zooming, panning and interaction.")
-
-with col3:
-    st.success("Scientific Computing")
-    st.write("Built using NumPy and SciPy numerical solvers.")
-
-# ---------------------------------------------------
-# Featured Simulation
-# ---------------------------------------------------
-
-st.markdown(
-    '<div class="section-title">Featured Simulation</div>',
-    unsafe_allow_html=True
-)
-
-st.info("🕰 **Simple Pendulum**")
-
-st.write("""
-
-Explore the motion of damped and undamped pendulums.
-
-Adjust
-
-- Gravity
-- Length
-- Damping
-- Initial Angle
-- Initial Angular Velocity
-
-Observe
-
-- Pendulum Motion
-- Angle vs Time
-- Angular Velocity
-- Phase Space
-
-""")
-
-if st.button("Open Simple Pendulum"):
-
-    st.success("Simulation module coming soon...")
-
-# ---------------------------------------------------
-# Technologies
-# ---------------------------------------------------
-
-st.markdown(
-    '<div class="section-title">Powered By</div>',
-    unsafe_allow_html=True
-)
-
-st.write("""
-🐍 Python
-
-📊 Plotly
-
-⚡ Streamlit
-
-🔢 NumPy
-
-📐 SciPy
-
-""")
-
-st.divider()
-
-# ---------------------------------------------------
-# Footer
-# ---------------------------------------------------
-
-st.markdown(
-"""
-<div class="footer">
-
-<h3>Physics Studio</h3>
-
-Visualize • Explore • Discover
-
-Interactive Physics Simulations built with Python.
-
-</div>
-""",
-unsafe_allow_html=True
-)
+    bananakick.run()
