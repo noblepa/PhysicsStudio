@@ -16,21 +16,29 @@ st.set_page_config(
 # Sidebar
 # -------------------------------------------------------
 
-st.sidebar.title("⚛️ Physics Studio")
+#st.sidebar.title("⚛️ Physics Studio")
 
-page = st.sidebar.radio(
-    "Navigate",
-    [
-        "Home",
-        "Banana Kick"
-    ]
-)
+#page = st.sidebar.radio(
+#    "Navigate",
+#    [
+#        "Home",
+#        "Banana Kick"
+#    ],
+#    key="page"
+#)
+
+# -------------------------------------------
+# Navigation state
+# -------------------------------------------
+
+if "simulation" not in st.session_state:
+    st.session_state.simulation = "home"
 
 # -------------------------------------------------------
 # HOME PAGE
 # -------------------------------------------------------
 
-if page == "Home":
+if st.session_state.simulation == "home":
 
     st.title("⚛️ Physics Studio")
 
@@ -64,8 +72,10 @@ if page == "Home":
             """
         )
 
-        if st.button("Launch Banana Kick"):
-            st.session_state.page = "Banana Kick"
+        if st.button("Launch Banana Kick",
+                use_container_width=True):
+            st.session_state.simulation = "bananakick"
+            st.rerun()
 
     with col2:
 
@@ -83,6 +93,22 @@ if page == "Home":
 # BANANA KICK
 # -------------------------------------------------------
 
-elif page == "Banana Kick":
+elif st.session_state.simulation == "bananakick":
 
     bananakick.run()
+
+st.divider()
+
+st.markdown(
+"""
+<div style="text-align:center; padding:20px; color:#666;">
+<br>
+Developed and Maintained by <b>Dr. Noble P. Abraham</b><br>
+Department of Physics, 
+Mar Thoma College, Tiruvalla, Kerala, India
+<br>
+<!--© 2026 Physics Studio. All Rights Reserved.-->
+</div>
+""",
+unsafe_allow_html=True
+)

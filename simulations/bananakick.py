@@ -17,6 +17,11 @@ ASSET_DIR = Path(__file__).parent.parent / "assets"
 
 
 def run():
+    if st.button("🏠 Back to Home"):
+        st.session_state.simulation = "home"
+        st.rerun()
+
+    #st.title("⚽ Banana Kick Simulator")
     # ----------------------------
     # Sidebar controls
     # ----------------------------
