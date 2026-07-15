@@ -1,272 +1,283 @@
 import streamlit as st
-import numpy as np
-import plotly.graph_objects as go
-from scipy.integrate import solve_ivp
+
+# ---------------------------------------------------
+# Page Configuration
+# ---------------------------------------------------
 
 st.set_page_config(
-    page_title="Interactive Physics Studio",
+    page_title="Physics Studio",
+    page_icon="⚛️",
     layout="wide"
 )
 
-st.title("Simple Pendulum")
+# ---------------------------------------------------
+# Custom CSS
+# ---------------------------------------------------
 
-# =====================================
-# Sidebar Controls
-# =====================================
+st.markdown("""
+<style>
 
-st.sidebar.header("Simulation Parameters")
+.hero{
+    padding-top:40px;
+    padding-bottom:40px;
+}
 
-g = st.sidebar.slider(
-    "Gravity (m/s²)",
-    1.0,
-    20.0,
-    9.81
-)
+.big-title{
+    font-size:60px;
+    font-weight:700;
+    color:#1565C0;
+}
 
-L = st.sidebar.slider(
-    "Length (m)",
-    0.2,
-    5.0,
-    1.0
-)
+.subtitle{
+    font-size:28px;
+    color:#555;
+}
 
-b = st.sidebar.slider(
-    "Damping",
-    0.0,
-    1.0,
-    0.15
-)
+.section-title{
+    font-size:32px;
+    font-weight:600;
+    margin-top:30px;
+}
 
-theta_deg = st.sidebar.slider(
-    "Initial Angle (°)",
-    0,
-    180,
-    10
-)
+.feature-box{
+    padding:20px;
+    border-radius:12px;
+    background:#F7F9FC;
+    border:1px solid #E0E0E0;
+    height:210px;
+}
 
-omega0 = st.sidebar.slider(
-    "Initial Angular Velocity",
-    -10.0,
-    10.0,
-    0.0
-)
+.footer{
+    text-align:center;
+    color:gray;
+    margin-top:40px;
+}
 
-duration = st.sidebar.slider(
-    "Simulation Time (s)",
-    5,
-    60,
-    20
-)
+</style>
+""", unsafe_allow_html=True)
 
-theta0 = np.radians(theta_deg)
+# ---------------------------------------------------
+# Hero
+# ---------------------------------------------------
 
-# =====================================
-# Pendulum ODE
-# =====================================
+st.markdown('<div class="hero">', unsafe_allow_html=True)
 
-def pendulum_ode(t, y):
-    theta, omega = y
+col1, col2 = st.columns([3,1])
 
-    dtheta = omega
+with col1:
 
-    domega = -(g/L)*np.sin(theta) - b*omega
-
-    return [dtheta, domega]
-
-# =====================================
-# Solve
-# =====================================
-
-t = np.linspace(0, duration, 1000)
-
-solution = solve_ivp(
-    pendulum_ode,
-    (0, duration),
-    [theta0, omega0],
-    t_eval=t,
-    method="RK45"
-)
-
-theta = solution.y[0]
-omega = solution.y[1]
-x = L*np.sin(theta)
-y = -L*np.cos(theta)
-
-# =====================================
-# Display
-# =====================================
-
-st.success("Simulation completed successfully!")
-
-st.write(f"Number of time steps : {len(t)}")
-
-st.write(f"Final angle : {np.degrees(theta[-1]):.2f}°")
-
-st.write(f"Final angular velocity : {omega[-1]:.3f} rad/s")
-
-# Initial figure
-fig = go.Figure(
-    data=[
-        go.Scatter(
-            x=[0, x[0]],
-            y=[0, y[0]],
-            mode="lines+markers",
-            line=dict(width=4),
-            marker=dict(size=[10, 20]),
-        )
-    ]
-)
-
-#fig.update_yaxes(scaleanchor="x", scaleratio=1)
-
-#st.plotly_chart(fig)
-
-# Create animation frames
-frames = []
-
-for i in range(len(x)):
-    frames.append(
-        go.Frame(
-            data=[
-                go.Scatter(
-                    x=[0, x[i]],
-                    y=[0, y[i]],
-                    mode="lines+markers",
-                    line=dict(width=4),
-                    marker=dict(size=[10, 20]),
-                )
-            ],
-            name=str(i),
-        )
+    st.markdown(
+        '<div class="big-title">⚛️ Physics Studio</div>',
+        unsafe_allow_html=True
     )
 
-fig.frames = frames
+    st.markdown(
+        '<div class="subtitle">Visualize. Explore. Discover.</div>',
+        unsafe_allow_html=True
+    )
 
-fig.update_layout(
-    updatemenus=[
-        dict(
-            type="buttons",
-            buttons=[
-                dict(
-                    label="▶ Play",
-                    method="animate",
-                    args=[
-                        None,
-                        {
-                            "frame": {"duration": 20, "redraw": True},
-                            "fromcurrent": True,
-                        },
-                    ],
-                ),
-                dict(
-                    label="⏸ Pause",
-                    method="animate",
-                    args=[
-                        [None],
-                        {
-                            "frame": {"duration": 0, "redraw": False},
-                            "mode": "immediate",
-                        },
-                    ],
-                ),
-            ],
-        )
-    ]
+    st.write("")
+
+    st.write("""
+Interactive simulations that bring Physics to life.
+
+Explore the laws of nature through real numerical simulations,
+interactive graphs and beautiful visualisations.
+""")
+
+    st.button("🚀 Launch Simulation")
+
+with col2:
+
+    st.image(
+        "https://upload.wikimedia.org/wikipedia/commons/5/58/Atom_symbol.svg",
+        use_container_width=True
+    )
+
+st.divider()
+
+# ---------------------------------------------------
+# Why Physics Studio
+# ---------------------------------------------------
+
+st.markdown(
+    '<div class="section-title">Why Physics Studio?</div>',
+    unsafe_allow_html=True
 )
 
-fig.update_xaxes(
-    range=[-L - 0.2, L + 0.2]
+st.write("""
+
+Physics is best learned by experimentation.
+
+Instead of memorising equations,
+change parameters and immediately observe
+their effect on the physical system.
+
+Every simulation is built from the governing equations
+and solved numerically using Python.
+
+""")
+
+# ---------------------------------------------------
+# Topics
+# ---------------------------------------------------
+
+st.markdown(
+    '<div class="section-title">Explore Physics</div>',
+    unsafe_allow_html=True
 )
 
-fig.update_yaxes(
-    range=[-L - 0.2, 0.2],
-    scaleanchor="x",
-    scaleratio=1,
+c1,c2,c3 = st.columns(3)
+
+with c1:
+
+    st.markdown("""
+<div class="feature-box">
+
+### ⚙️ Mechanics
+
+- Projectile Motion
+- Pendulum
+- Double Pendulum
+- Banana Kick
+- Coriolis Force
+- Circular Motion
+
+</div>
+""",unsafe_allow_html=True)
+
+with c2:
+
+    st.markdown("""
+<div class="feature-box">
+
+### 🌊 Waves & Optics
+
+- Standing Waves
+- Interference
+- Diffraction
+- Refraction
+- Doppler Effect
+- Polarisation
+
+</div>
+""",unsafe_allow_html=True)
+
+with c3:
+
+    st.markdown("""
+<div class="feature-box">
+
+### ⚡ Modern Physics
+
+- Electric Fields
+- Magnetism
+- Quantum Physics
+- Thermodynamics
+- Astronomy
+- Relativity
+
+</div>
+""",unsafe_allow_html=True)
+
+# ---------------------------------------------------
+# Features
+# ---------------------------------------------------
+
+st.markdown(
+    '<div class="section-title">Features</div>',
+    unsafe_allow_html=True
 )
 
-st.plotly_chart(fig, use_container_width=True)
+col1,col2,col3=st.columns(3)
 
+with col1:
+    st.success("Interactive Controls")
+    st.write("Adjust parameters using sliders and instantly observe the results.")
 
-tab1, tab2, tab3 = st.tabs([
-    "Angle",
-    "Angular Velocity",
-    "Phase Space"
-])
+with col2:
+    st.success("Real-time Graphs")
+    st.write("Powered by Plotly for smooth zooming, panning and interaction.")
 
-with tab1:
+with col3:
+    st.success("Scientific Computing")
+    st.write("Built using NumPy and SciPy numerical solvers.")
 
-    fig = go.Figure()
+# ---------------------------------------------------
+# Featured Simulation
+# ---------------------------------------------------
 
-    fig.add_trace(
-        go.Scatter(
-            line=dict(width=3),
-            x=solution.t,
-            y=np.degrees(theta),
-            mode="lines",
-            name="Angle"
-        )
-    )
-    fig.add_trace(
-        go.Scatter(
-        x=solution.t,
-        y=np.zeros_like(solution.t),
-        mode="lines",
-        name="Equilibrium",
-        line=dict(dash="dash")
-        )
-    )
+st.markdown(
+    '<div class="section-title">Featured Simulation</div>',
+    unsafe_allow_html=True
+)
 
-    fig.update_layout(
-        title="Angular Displacement",
-        xaxis_title="Time (s)",
-        yaxis_title="Angle (°)",
-        template="plotly_white"
-    )
+st.info("🕰 **Simple Pendulum**")
 
-    st.plotly_chart(fig, use_container_width=True)
+st.write("""
 
-with tab2:
+Explore the motion of damped and undamped pendulums.
 
-    fig = go.Figure()
+Adjust
 
-    fig.add_trace(
-        go.Scatter(
-            line=dict(width=3),
-            x=solution.t,
-            y=omega,
-            mode="lines",
-            name="Angular Velocity"
-        )
-    )
+- Gravity
+- Length
+- Damping
+- Initial Angle
+- Initial Angular Velocity
 
-    fig.update_layout(
-        title="Angular Velocity",
-        xaxis_title="Time (s)",
-        yaxis_title="ω (rad/s)",
-        template="plotly_white"
-    )
+Observe
 
-    st.plotly_chart(fig, use_container_width=True)
+- Pendulum Motion
+- Angle vs Time
+- Angular Velocity
+- Phase Space
 
-with tab3:
+""")
 
-    fig = go.Figure()
+if st.button("Open Simple Pendulum"):
 
-    fig.add_trace(
-        go.Scatter(
-            line=dict(width=3),
-            x=theta,
-            y=omega,
-            mode="lines",
-            name="Phase Space"
-        )
-    )
+    st.success("Simulation module coming soon...")
 
-    fig.update_layout(
-        title="Phase Space",
-        xaxis_title="θ (rad)",
-        yaxis_title="ω (rad/s)",
-        template="plotly_white"
-    )
+# ---------------------------------------------------
+# Technologies
+# ---------------------------------------------------
 
-    st.plotly_chart(fig, use_container_width=True)
+st.markdown(
+    '<div class="section-title">Powered By</div>',
+    unsafe_allow_html=True
+)
+
+st.write("""
+🐍 Python
+
+📊 Plotly
+
+⚡ Streamlit
+
+🔢 NumPy
+
+📐 SciPy
+
+""")
+
+st.divider()
+
+# ---------------------------------------------------
+# Footer
+# ---------------------------------------------------
+
+st.markdown(
+"""
+<div class="footer">
+
+<h3>Physics Studio</h3>
+
+Visualize • Explore • Discover
+
+Interactive Physics Simulations built with Python.
+
+</div>
+""",
+unsafe_allow_html=True
+)
