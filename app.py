@@ -1,6 +1,6 @@
 import streamlit as st
 
-from simulations import bananakick, lorenz
+from simulations import bananakick, lorenz, pendulum
 
 # -------------------------------------------------------
 # Page Configuration
@@ -79,13 +79,23 @@ if st.session_state.simulation == "home":
 
     with col2:
 
-        st.markdown("### 🕰 Pendulum")
+        st.markdown("### 🕰 Simple Pendulum")
 
-        st.write("Coming Soon")
+        st.write(
+            """
+            Explore the nonlinear pendulum equation and see
+            how phase space reveals its motion.
+            """
+        )
+
+        if st.button("Launch Pendulum",
+                use_container_width=True):
+            st.session_state.simulation = "pendulum"
+            st.rerun()
 
     with col3:
 
-        st.markdown("### 🦋 Butterfly Effect / 🌀 Lorenz Attractor")
+        st.markdown("### 🦋 Butterfly Effect")
 
         st.write(
             """
@@ -114,6 +124,10 @@ elif st.session_state.simulation == "bananakick":
 elif st.session_state.simulation == "lorenz":
 
     lorenz.run()
+
+elif st.session_state.simulation == "pendulum":
+
+    pendulum.run()
 
 st.divider()
 
