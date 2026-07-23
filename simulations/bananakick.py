@@ -145,6 +145,10 @@ def run():
     # Header + result banner
     # ----------------------------
     st.title("⚽ Banana Kick Simulator")
+    st.caption(
+        "A free kick's curve comes from the **Magnus effect**: spin on the ball creates a sideways "
+        "aerodynamic force, bending its path around the wall."
+    )
 
     banner = ASSET_DIR / "bananakick.png"
 
@@ -153,10 +157,7 @@ def run():
         use_container_width=True
     )
 
-    st.caption(
-        "A free kick's curve comes from the **Magnus effect**: spin on the ball creates a sideways "
-        "aerodynamic force, bending its path around the wall."
-    )
+   
 
     col_a, col_b, col_c = st.columns(3)
     col_a.metric(

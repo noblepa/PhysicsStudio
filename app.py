@@ -1,6 +1,6 @@
 import streamlit as st
 
-from simulations import bananakick
+from simulations import bananakick, lorenz
 
 # -------------------------------------------------------
 # Page Configuration
@@ -87,7 +87,17 @@ if st.session_state.simulation == "home":
 
         st.markdown("### 🦋 Butterfly Effect / 🌀 Lorenz Attractor")
 
-        st.write("Coming Soon")
+        st.write(
+            """
+            Discover chaos theory through the Lorenz system —
+            deterministic equations that never repeat.
+            """
+        )
+
+        if st.button("Launch Butterfly Effect",
+                use_container_width=True):
+            st.session_state.simulation = "lorenz"
+            st.rerun()
 
 # -------------------------------------------------------
 # BANANA KICK
@@ -96,6 +106,14 @@ if st.session_state.simulation == "home":
 elif st.session_state.simulation == "bananakick":
 
     bananakick.run()
+
+# -------------------------------------------------------
+# LORENZ ATTRACTOR
+# -------------------------------------------------------
+
+elif st.session_state.simulation == "lorenz":
+
+    lorenz.run()
 
 st.divider()
 
