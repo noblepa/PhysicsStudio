@@ -1,6 +1,6 @@
 import streamlit as st
 
-from simulations import bananakick, lorenz, pendulum
+from simulations import bananakick, lorenz, pendulum, charged_particle, coriolis
 
 # -------------------------------------------------------
 # Page Configuration
@@ -108,6 +108,44 @@ if st.session_state.simulation == "home":
                 use_container_width=True):
             st.session_state.simulation = "lorenz"
             st.rerun()
+    
+    st.divider()
+
+    col4, col5, col6 = st.columns(3)
+
+    with col4:
+
+        st.markdown("### ⚛️ Charged Particle")
+
+        st.write(
+            """
+            See how electric and magnetic fields bend a
+            charged particle's path — helices and E×B drift.
+            """
+        )
+
+        if st.button("Launch Charged Particle",
+                use_container_width=True):
+            st.session_state.simulation = "charged_particle"
+            st.rerun()
+
+    with col5:
+        st.markdown("### 🌍 Coriolis Effect")
+
+        st.write(
+            """
+            Launch a projectile from any latitude and watch a
+            rotating Earth bend its path.
+            """
+        )
+
+        if st.button("Launch Coriolis Effect",
+                use_container_width=True):
+            st.session_state.simulation = "coriolis"
+            st.rerun()
+
+    with col6:
+        st.write("")  # placeholder for future simulation
 
 # -------------------------------------------------------
 # BANANA KICK
@@ -117,10 +155,6 @@ elif st.session_state.simulation == "bananakick":
 
     bananakick.run()
 
-# -------------------------------------------------------
-# LORENZ ATTRACTOR
-# -------------------------------------------------------
-
 elif st.session_state.simulation == "lorenz":
 
     lorenz.run()
@@ -128,6 +162,13 @@ elif st.session_state.simulation == "lorenz":
 elif st.session_state.simulation == "pendulum":
 
     pendulum.run()
+    
+elif st.session_state.simulation == "charged_particle":
+
+    charged_particle.run()
+
+elif st.session_state.simulation == "coriolis":
+    coriolis.run()
 
 st.divider()
 
