@@ -262,7 +262,7 @@ def run():
         updatemenus=[dict(
             type="buttons",
             showactive=False,
-            y=1.06, x=0.02,
+            y=0.85, x=0.1,
             buttons=[
                 dict(label="▶ Play", method="animate",
                      args=[None, dict(frame=dict(duration=1000 / fps, redraw=True),
