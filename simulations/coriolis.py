@@ -1,35 +1,22 @@
 """
-simulations.coriolis
--------------------------
-Interactive rotating-Earth Coriolis force simulator, using Plotly for
-visuals (including an animated spinning-globe / curving-path view).
-Exposes a single run() function, called from app.py as:
+simulations.coriolis_simple
+--------------------------------
+A playful, jargon-light explanation of the Coriolis effect using the
+classic "ball on a merry-go-round" story, instead of the full rotating-
+Earth simulator. Aimed at people with no physics background. Exposes a
+single run() function, called from app.py as:
 
-    from simulations import coriolis
-    coriolis.run()
+    from simulations import coriolis_simple
+    coriolis_simple.run()
 
 Assumes st.set_page_config() has already been called by app.py.
 
-PHYSICS NOTE
-------------
-A projectile is launched from a chosen latitude with some speed and
-compass direction. Two rotation rates are used, on purpose:
-
-  - The FULL rotation rate Omega governs how the whole rigid Earth
-    (drawn here as a globe with meridian/parallel gridlines) spins in
-    real 3D space - this is shown directly in the "Space Frame" view.
-
-  - The LOCAL horizontal deflection rate Omega_eff = Omega * sin(latitude)
-    (the classic geophysical "Coriolis parameter" f = 2*Omega*sin(lat),
-    here used as f/2) governs how a projectile's path curves within the
-    local tangent plane at that latitude - this is the standard
-    "f-plane" approximation used throughout meteorology and
-    oceanography, valid for motion small compared to Earth's radius.
-
-This is why the whole globe visibly spins at the same rate regardless
-of latitude, while the LOCAL curving of a projectile's path is
-strongest at the poles, vanishes at the equator, and flips sign between
-hemispheres - exactly matching the textbook Coriolis effect.
+The underlying physics is exactly the same free-particle /
+coordinate-rotation trick used elsewhere in this project (a ball with
+no real sideways force on it, viewed from a spinning platform) - just
+told as a story, with a merry-go-round instead of a globe, and with the
+sliders, labels, and pacing built for a first-time audience rather than
+a physics student.
 """
 import numpy as np
 import plotly.graph_objects as go
@@ -37,234 +24,184 @@ import streamlit as st
 from pathlib import Path
 ASSET_DIR = Path(__file__).parent.parent / "assets"
 
+
 def run():
     if st.button("🏠 Back to Home"):
         st.session_state.simulation = "home"
         st.rerun()
     # ----------------------------
-    # Sidebar controls
+    # Friendly intro
     # ----------------------------
-    st.sidebar.title("🌍 Coriolis Force Controls")
-
-    st.sidebar.subheader("Launch")
-    latitude = st.sidebar.slider("Launch latitude (°)", -90.0, 90.0, 45.0, 1.0,
-                                  help="0° = equator, +90° = North Pole, -90° = South Pole")
-    azimuth = st.sidebar.slider("Launch direction (° from North, clockwise)", 0.0, 360.0, 90.0, 5.0,
-                                 help="0°=North, 90°=East, 180°=South, 270°=West")
-    speed = st.sidebar.slider("Launch speed", 0.02, 0.20, 0.08, 0.01,
-                               help="In units of Earth radii per second")
-
-    st.sidebar.subheader("Earth's Rotation")
-    Omega = st.sidebar.slider("Rotation rate Ω (rad/s)", 0.0, 3.0, 1.2, 0.1,
-                               help="Set to 0 to see the Coriolis effect disappear entirely. "
-                                    "(Real Earth: Ω ≈ 7.29×10⁻⁵ rad/s — greatly exaggerated here for visibility.)")
-
-    st.sidebar.subheader("Simulation")
-    t_max = st.sidebar.slider("Flight duration (s)", 1.0, 10.0, 5.0, 0.5)
-    fps = st.sidebar.slider("Animation frame rate (fps)", 10, 40, 24, 2)
-
-    st.sidebar.subheader("View")
-    frame_choice = st.sidebar.radio(
-        "Reference frame to animate",
-        ["Space (Inertial) Frame", "Earth (Rotating) Frame"],
-        index=1
-    )
-    show_vector = st.sidebar.checkbox("Show Coriolis force vector", value=True)
-
-    R = 1.0  # normalized Earth radius
-
-    # ----------------------------
-    # Physics (cached so identical parameter combos don't re-integrate)
-    # ----------------------------
-    @st.cache_data(show_spinner=False)
-    def simulate(latitude, azimuth, speed, Omega, t_max, n_pts=300):
-        phi = np.radians(latitude)
-        az = np.radians(azimuth)
-        Omega_eff = Omega * np.sin(phi)
-
-        vE0 = speed * np.sin(az)
-        vN0 = speed * np.cos(az)
-
-        t = np.linspace(0, t_max, n_pts)
-        xI, yI = vE0 * t, vN0 * t  # straight line in the local tangent plane
-
-        co, so = np.cos(Omega_eff * t), np.sin(Omega_eff * t)
-        xR = xI * co + yI * so
-        yR = -xI * so + yI * co
-
-        deflection = np.hypot(xR - xI, yR - yI)
-
-        # Coriolis acceleration in the local rotating frame, via the relative
-        # velocity in that frame (finite differences of the curved path)
-        vE_rel = np.gradient(xR, t)
-        vN_rel = np.gradient(yR, t)
-        aE_cor = 2 * Omega_eff * vN_rel
-        aN_cor = -2 * Omega_eff * vE_rel
-
-        return t, xI, yI, xR, yR, deflection, Omega_eff, aE_cor, aN_cor
-
-    t, xI, yI, xR, yR, deflection, Omega_eff, aE_cor, aN_cor = simulate(
-        latitude, azimuth, speed, Omega, t_max
-    )
-
-    # ----------------------------
-    # Geometry: launch point + local East/North/Up basis on the globe
-    # ----------------------------
-    phi = np.radians(latitude)
-    pos0 = R * np.array([np.cos(phi), 0.0, np.sin(phi)])   # launched at longitude = 0
-    East_hat = np.array([0.0, 1.0, 0.0])
-    North_hat = np.array([-np.sin(phi), 0.0, np.cos(phi)])
-
-    def embed(x_local, y_local):
-        """Embed local tangent-plane (East, North) coords into 3D world space."""
-        return (pos0[None, :] + np.outer(x_local, East_hat) + np.outer(y_local, North_hat))
-
-    world_I = embed(xI, yI)   # straight path, world coordinates
-    world_R = embed(xR, yR)   # curved (apparent) path, world coordinates
-
-    # ----------------------------
-    # Header + metrics
-    # ----------------------------
-    st.title("🌍 Coriolis Force: Interactive Rotating-Earth Simulator")
-    st.caption(
-        "Launch a projectile from any latitude and watch it fly in a straight line — while the "
-        "rotating Earth beneath it makes the path appear to curve. Toggle frames below to see both."
-    )
-    banner = ASSET_DIR / "coriolis.png"
+    st.title("🎠 The Coriolis Effect, Explained Simply")
+    
+    banner = ASSET_DIR / "coriolis1.png"
     st.image(
         str(banner),
         use_container_width=True
     )
 
-    col_a, col_b, col_c = st.columns(3)
-    col_a.metric("Local Coriolis parameter (Ω sin φ)", f"{Omega_eff:+.3f} rad/s")
-    col_b.metric("Final deflection (apparent vs. straight)", f"{deflection[-1]:.4f} R")
-    col_c.metric("Hemisphere behavior",
-                 "No deflection (equator)" if abs(latitude) < 0.5 else
-                 ("Deflects right of motion (N. Hemisphere)" if latitude > 0 else
-                  "Deflects left of motion (S. Hemisphere)"))
+    # ----------------------------
+    # Sidebar controls - kept minimal and friendly
+    # ----------------------------
+    st.sidebar.title("🎠 Try It Yourself")
 
-    if Omega == 0:
-        st.info("Ω = 0 — Earth isn't rotating, so there's no Coriolis effect: the two paths coincide exactly.")
+    spin_speed = st.sidebar.slider(
+        "🐴💨 How fast is the ride spinning?", 0.0, 3.0, 1.2, 0.1,
+        help="Drag this to 0 to stop the ride completely — watch what happens to the curve!"
+    )
+    throw_strength = st.sidebar.slider(
+        "🎯 How hard do you throw the ball?", 0.05, 0.5, 0.25, 0.01
+    )
+    viewpoint = st.sidebar.radio(
+        "👀 Whose eyes are you watching through?",
+        ["🧍 Your friend, standing outside", "🎠 You, riding the merry-go-round"],
+        index=1
+    )
+
+    with st.sidebar.expander("⚙️ Advanced (optional)"):
+        throw_angle = st.slider("Throw direction (°)", 0, 360, 20, 5)
+        t_max = st.slider("How long to watch (seconds)", 1.0, 10.0, 6.0, 0.5)
+        fps = st.slider("Animation smoothness (fps)", 10, 40, 24, 2)
+
+    riding = viewpoint.startswith("🎠")
 
     # ----------------------------
-    # Helpers: globe surface + gridlines
+    # Physics: identical free-particle + coordinate-rotation model used
+    # throughout this project, just relabeled for the story.
     # ----------------------------
-    def earth_surface(R=1.0, n=40):
-        u = np.linspace(0, 2 * np.pi, n)
-        v = np.linspace(0, np.pi, n // 2)
-        x = R * np.outer(np.cos(u), np.sin(v))
-        y = R * np.outer(np.sin(u), np.sin(v))
-        z = R * np.outer(np.ones_like(u), np.cos(v))
-        return go.Surface(x=x, y=y, z=z, opacity=0.55,
-                           colorscale=[[0, "#bfe3f0"], [1, "#bfe3f0"]],
-                           showscale=False, name="Earth", hoverinfo="skip")
+    @st.cache_data(show_spinner=False)
+    def simulate(spin_speed, throw_strength, throw_angle, t_max, n_pts=400):
+        az = np.radians(throw_angle)
+        v0 = throw_strength * np.array([np.cos(az), np.sin(az)])
+        t = np.linspace(0, t_max, n_pts)
+        # straight line, as seen by the friend standing outside
+        pos_outside = np.outer(t, v0)
+        # transform into the spinning ride's own point of view
+        co, so = np.cos(spin_speed * t), np.sin(spin_speed * t)
+        x_out, y_out = pos_outside[:, 0], pos_outside[:, 1]
+        x_ride = x_out * co + y_out * so
+        y_ride = -x_out * so + y_out * co
+        pos_ride = np.stack([x_ride, y_ride], axis=1)
+        deflection = np.linalg.norm(pos_ride - pos_outside, axis=1)
+        return t, pos_outside, pos_ride, deflection
 
-    def meridian(lon_deg, R=1.0, n=60):
-        lon = np.radians(lon_deg)
-        v = np.linspace(0, np.pi, n)
-        x = R * np.sin(v) * np.cos(lon)
-        y = R * np.sin(v) * np.sin(lon)
-        z = R * np.cos(v)
-        return np.stack([x, y, z], axis=1)
+    t, pos_outside, pos_ride, deflection = simulate(spin_speed, throw_strength, throw_angle, t_max)
+    pos_shown = pos_ride if riding else pos_outside
 
-    def parallel(lat_deg, R=1.0, n=60):
-        lat = np.radians(lat_deg)
-        u = np.linspace(0, 2 * np.pi, n)
-        x = R * np.cos(lat) * np.cos(u)
-        y = R * np.cos(lat) * np.sin(u)
-        z = R * np.sin(lat) * np.ones_like(u)
-        return np.stack([x, y, z], axis=1)
-
-    def rot_z(points, angle):
-        c, s = np.cos(angle), np.sin(angle)
-        Rz = np.array([[c, -s, 0], [s, c, 0], [0, 0, 1]])
-        return points @ Rz.T
-
-    meridians = [meridian(lon) for lon in range(0, 360, 45)]
-    parallels = [parallel(lat) for lat in [-45, 0, 45]]
+    R = 1.0  # merry-go-round radius, for drawing
 
     # ----------------------------
-    # Main animated 3D figure
+    # Friendly result callouts (no jargon, no metrics-speak)
     # ----------------------------
-    max_frames = 120
-    stride = max(1, len(t) // max_frames)
-    idx = np.arange(0, len(t), stride)
-    trail_len = 40
+    col1, col2 = st.columns(2)
+    with col1:
+        if spin_speed == 0:
+            st.success("🛑 The ride isn't spinning — so there's no curve at all. Both of you see the exact same "
+                        "straight path.")
+        elif riding:
+            st.info(f"🎠 From **your** seat on the ride, the ball drifts off course by about "
+                    f"**{deflection[-1]:.2f} ride-widths** by the time it reaches the edge.")
+        else:
+            st.info("🧍 From **outside**, the ball just rolls in a straight line the whole way — "
+                    "no curve, no mystery.")
+    with col2:
+        st.write(
+            "Try dragging **spin speed down to 0** — the curve disappears completely, because "
+            "without spinning, there's no difference between the two points of view at all."
+        )
 
-    grid_color = "rgba(70,130,180,0.45)"
-    inertial_mode = frame_choice.startswith("Space")
+    # ----------------------------
+    # Playful platform: a colorful pinwheel merry-go-round
+    # ----------------------------
+    WEDGE_COLORS = ["#FF6B6B", "#FFD93D", "#6BCB77", "#4D96FF", "#C77DFF", "#FF9F45"]
+    N_WEDGES = 8
 
-    def gridline_traces(angle=0.0):
+    def wedge_xy(theta0, theta1, radius=R, n=12):
+        angles = np.linspace(theta0, theta1, n)
+        xs = np.concatenate(([0], radius * np.cos(angles), [0]))
+        ys = np.concatenate(([0], radius * np.sin(angles), [0]))
+        return xs, ys
+
+    def platform_traces(angle_offset):
         traces = []
-        for m in meridians:
-            pts = rot_z(m, angle) if inertial_mode else m
-            traces.append(go.Scatter3d(x=pts[:, 0], y=pts[:, 1], z=pts[:, 2], mode="lines",
-                                        line=dict(color=grid_color, width=1.5),
-                                        showlegend=False, hoverinfo="skip"))
-        for p in parallels:
-            pts = rot_z(p, angle) if inertial_mode else p
-            traces.append(go.Scatter3d(x=pts[:, 0], y=pts[:, 1], z=pts[:, 2], mode="lines",
-                                        line=dict(color=grid_color, width=1.5),
-                                        showlegend=False, hoverinfo="skip"))
+        dtheta = 2 * np.pi / N_WEDGES
+        for i in range(N_WEDGES):
+            th0, th1 = i * dtheta + angle_offset, (i + 1) * dtheta + angle_offset
+            xs, ys = wedge_xy(th0, th1)
+            traces.append(go.Scatter(
+                x=xs, y=ys, fill="toself", fillcolor=WEDGE_COLORS[i % len(WEDGE_COLORS)],
+                line=dict(width=0), mode="lines", opacity=0.85,
+                showlegend=False, hoverinfo="skip",
+            ))
+        # a few little "horse" markers riding the rim for charm
+        rim_angles = np.linspace(0, 2 * np.pi, N_WEDGES, endpoint=False) + angle_offset + dtheta / 2
+        traces.append(go.Scatter(
+            x=(R * 0.7) * np.cos(rim_angles), y=(R * 0.7) * np.sin(rim_angles),
+            mode="text", text=["🐴"] * len(rim_angles), textfont=dict(size=18),
+            showlegend=False, hoverinfo="skip",
+        ))
         return traces
 
-    def launch_marker(angle=0.0):
-        p = (rot_z(pos0[None, :], angle) if inertial_mode else pos0[None, :])[0]
-        return go.Scatter3d(x=[p[0]], y=[p[1]], z=[p[2]], mode="markers",
-                             marker=dict(size=5, color="black"), name="Launch point")
+    def comet_trail(path, i, start, n_seg=8, rgb=(255, 255, 255)):
+        seg_idx = np.unique(np.linspace(start, i, n_seg + 1).astype(int))
+        traces = []
+        n = max(len(seg_idx) - 1, 1)
+        for k in range(n):
+            a0, a1 = seg_idx[k], seg_idx[min(k + 1, len(seg_idx) - 1)]
+            frac = (k + 1) / n
+            alpha = 0.15 + 0.8 * frac ** 1.5
+            width = 3 + 8 * frac ** 1.2
+            traces.append(go.Scatter(
+                x=path[a0:a1 + 1, 0], y=path[a0:a1 + 1, 1], mode="lines",
+                line=dict(color=f"rgba({rgb[0]},{rgb[1]},{rgb[2]},{alpha:.2f})", width=width),
+                showlegend=False, hoverinfo="skip",
+            ))
+        return traces
 
-    world_path = world_I if inertial_mode else world_R
-    path_color = "gray" if inertial_mode else "darkorange"
-    path_label = "Straight-line (inertial) path" if inertial_mode else "Apparent curved path"
+    def glowing_ball(point):
+        return [
+            go.Scatter(x=[point[0]], y=[point[1]], mode="markers",
+                       marker=dict(size=26, color="rgba(255,255,255,0.35)"),
+                       showlegend=False, hoverinfo="skip"),
+            go.Scatter(x=[point[0]], y=[point[1]], mode="text", text=["⚾"],
+                       textfont=dict(size=20), showlegend=False, hoverinfo="skip"),
+        ]
 
-    vec_scale = 0.6 * max(np.hypot(aE_cor, aN_cor).max(), 1e-9) ** -1 * 0.15 if show_vector else 0.0
+    max_frames = 100
+    stride = max(1, len(t) // max_frames)
+    idx = np.arange(0, len(t), stride)
+    trail_len = 30
 
     frames = []
     for i in idx:
         start = max(0, i - trail_len)
-        angle_i = Omega * t[i] if inertial_mode else 0.0
-        data = gridline_traces(angle_i) + [
-            launch_marker(angle_i),
-            go.Scatter3d(x=world_path[:i + 1, 0], y=world_path[:i + 1, 1], z=world_path[:i + 1, 2],
-                         mode="lines", line=dict(color=path_color, width=2), showlegend=False),
-            go.Scatter3d(x=world_path[start:i + 1, 0], y=world_path[start:i + 1, 1], z=world_path[start:i + 1, 2],
-                         mode="lines", line=dict(color=path_color, width=6), showlegend=False),
-            go.Scatter3d(x=[world_path[i, 0]], y=[world_path[i, 1]], z=[world_path[i, 2]],
-                         mode="markers", marker=dict(size=6, color=path_color, line=dict(color="black", width=1)),
-                         showlegend=False),
-        ]
-        if show_vector and not inertial_mode:
-            vx, vy = aE_cor[i] * vec_scale, aN_cor[i] * vec_scale
-            tip = world_R[i] + vx * East_hat + vy * North_hat
-            data.append(go.Scatter3d(
-                x=[world_R[i, 0], tip[0]], y=[world_R[i, 1], tip[1]], z=[world_R[i, 2], tip[2]],
-                mode="lines+markers", line=dict(color="firebrick", width=5),
-                marker=dict(size=[0, 4], color="firebrick", symbol="diamond"),
-                showlegend=False
-            ))
+        angle_i = spin_speed * t[i] if not riding else 0.0
+        data = platform_traces(angle_i)
+        # dashed guide showing the whole path traced out so far, in both viewpoints
+        data += [go.Scatter(
+            x=pos_shown[:i + 1, 0], y=pos_shown[:i + 1, 1], mode="lines",
+            line=dict(color="rgba(255,255,255,0.6)", width=2, dash="dot"),
+            showlegend=False, hoverinfo="skip",
+        )]
+        data += comet_trail(pos_shown, i, start)
+        data += glowing_ball(pos_shown[i])
         frames.append(go.Frame(data=data, name=str(i)))
 
-    fig = go.Figure(
-        data=[earth_surface()] + list(frames[0].data),
-        frames=frames,
-    )
+    fig = go.Figure(data=frames[0].data, frames=frames)
+    view_label = "🎠 Your view, riding the merry-go-round" if riding else "🧍 Your friend's view, standing outside"
     fig.update_layout(
-        title=dict(text=f"{path_label} — {frame_choice}", pad=dict(b=15)),
-        scene=dict(
-            xaxis=dict(range=[-1.6, 1.6], visible=False),
-            yaxis=dict(range=[-1.6, 1.6], visible=False),
-            zaxis=dict(range=[-1.6, 1.6], visible=False),
-            aspectmode="cube",
-        ),
+        title=dict(text=view_label, pad=dict(b=15), font=dict(size=20)),
+        xaxis=dict(range=[-1.6, 1.6], visible=False),
+        yaxis=dict(range=[-1.6, 1.6], visible=False, scaleanchor="x", scaleratio=1),
+        plot_bgcolor="#2e7d32" if not riding else "#1b5e20",
         height=560,
-        margin=dict(l=0, r=0, t=50, b=0),
+        margin=dict(l=10, r=10, t=60, b=10),
         updatemenus=[dict(
             type="buttons",
             showactive=False,
-            y=0.85, x=0.1,
+            y=1.0, x=0.02,
             buttons=[
-                dict(label="▶ Play", method="animate",
+                dict(label="▶ Throw the ball!", method="animate",
                      args=[None, dict(frame=dict(duration=1000 / fps, redraw=True),
                                        fromcurrent=True, transition=dict(duration=0))]),
                 dict(label="⏸ Pause", method="animate",
@@ -274,55 +211,68 @@ def run():
     )
     st.plotly_chart(fig, width='stretch')
 
-    # ----------------------------
-    # Static comparison: both paths, local tangent-plane view
-    # ----------------------------
-    st.subheader("Both Paths Compared (local tangent-plane view)")
-    fig_cmp = go.Figure()
-    fig_cmp.add_trace(go.Scatter(x=xI, y=yI, mode="lines",
-                                  line=dict(color="gray", width=2, dash="dash"),
-                                  name="Straight-line (inertial) path"))
-    fig_cmp.add_trace(go.Scatter(x=xR, y=yR, mode="lines",
-                                  line=dict(color="darkorange", width=2.5),
-                                  name="Apparent curved (Earth-frame) path"))
-    fig_cmp.add_trace(go.Scatter(x=[0], y=[0], mode="markers",
-                                  marker=dict(size=8, color="black"), name="Launch point"))
-    fig_cmp.update_layout(
-        title=dict(text="East–North Displacement from Launch Point", pad=dict(b=15)),
-        xaxis_title="East displacement (R)",
-        yaxis_title="North displacement (R)",
-        yaxis=dict(scaleanchor="x", scaleratio=1),
-        height=460,
-        margin=dict(l=10, r=10, t=50, b=10),
+    st.caption(
+        "🧍 Standing outside, the ride spins underneath a ball that never stops going straight. "
+        "🎠 Riding along, you're spinning too — so the same ball looks like it bends away from you."
     )
-    st.plotly_chart(fig_cmp, width='stretch')
 
-    with st.expander("How this works"):
+    # ----------------------------
+    # Myth-buster callout
+    # ----------------------------
+    st.warning(
+        "🚽 **Common myth, busted:** you may have heard that the Coriolis effect makes toilets and "
+        "sinks drain in opposite directions in the Northern and Southern Hemispheres. That's not "
+        "actually true! Your sink is far too small and drains far too fast for Earth's gentle spin "
+        "to matter — the direction it swirls is decided by the shape of the basin and tiny leftover "
+        "currents in the water, not the Coriolis effect. The real effect only shows up over huge "
+        "distances and long times, like weather systems spanning hundreds of kilometers."
+    )
+
+    # ----------------------------
+    # Bonus: hurricanes really do obey this
+    # ----------------------------
+    st.subheader("🌀 But hurricanes really do feel it")
+    col_n, col_s = st.columns(2)
+    with col_n:
+        st.markdown("#### Northern Hemisphere")
+        st.markdown("Hurricanes spin **counterclockwise** 🌀↺")
+    with col_s:
+        st.markdown("#### Southern Hemisphere")
+        st.markdown("Cyclones spin **clockwise** 🌀↻")
+    st.write(
+        "A hurricane is just air rushing toward a low-pressure center — but because it travels over "
+        "hundreds of kilometers and hours, the same 'merry-go-round' effect has plenty of room and "
+        "time to act, curving the incoming wind into the recognizable spiral."
+    )
+
+    with st.expander("Want the actual math behind this?"):
         st.markdown(
             r"""
-This simulator uses two different rotation rates on purpose:
+The ball never has any real sideways force on it — its path in the outside (non-spinning) view is
+simply
 
-- The **full rotation rate Ω** spins the entire rigid Earth (the globe and its gridlines you see in the
-  "Space Frame" view) — this is real and happens at the same rate everywhere on the planet.
-- The **local horizontal deflection rate** Ω_eff = Ω·sin(latitude) — equivalent to half the classic
-  **Coriolis parameter**, f = 2Ω sin(latitude) — governs how a *freely moving* object's path curves
-  within the local tangent plane at that latitude. This is the standard **f-plane approximation** used
-  throughout meteorology and oceanography, valid for motion that's small compared to Earth's radius.
-
-That's why the whole globe spins at the same visible rate regardless of where you launch from, while the
-**local curving of the projectile's path**:
-
-- is **strongest at the poles** (sin 90° = 1),
-- **vanishes exactly at the equator** (sin 0° = 0) — try dragging the latitude slider to 0°,
-- and **flips direction** between hemispheres (deflects right of motion in the North, left in the South).
-
-Setting **Ω = 0** removes the effect completely — the straight and curved paths become identical, since
-without rotation there's no distinction between "inertial" and "rotating" frames at all.
-
-The instantaneous Coriolis acceleration shown as a red arrow is
 $$
-\mathbf{a}_{Cor} = -2\,\Omega_{eff}\,\hat{z}_{local} \times \mathbf{v}_{rel}
+\mathbf{r}_{outside}(t) = \mathbf{v}_0 \, t
 $$
-where $\mathbf{v}_{rel}$ is the object's velocity as measured in the rotating (Earth-fixed) frame.
+
+To find what it looks like from the spinning ride, we just re-express that same straight line using
+axes that rotate along with the ride, at angular speed Ω:
+
+$$
+\mathbf{r}_{ride}(t) = R(-\Omega t)\,\mathbf{r}_{outside}(t)
+$$
+
+where $R(-\Omega t)$ is a standard 2D rotation matrix. Differentiating this twice with respect to
+time (holding the outside-view path fixed) reveals two *fictitious* accelerations that only appear
+in the spinning frame:
+
+$$
+\mathbf{a}_{ride} = \underbrace{-2\,\Omega \hat{z} \times \mathbf{v}_{ride}}_{\text{Coriolis}} \;
+\underbrace{- \,\Omega^2 \mathbf{r}_{ride}}_{\text{centrifugal}}
+$$
+
+The first term — the **Coriolis term** — is what curves the ball's path in this demo. Setting
+Ω (spin speed) to 0 makes both terms vanish, and the two points of view become identical, exactly
+as you saw above.
 """
         )

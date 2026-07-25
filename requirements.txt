@@ -31,7 +31,7 @@ httptools==0.8.0
 httpx==0.28.1
 idna==3.11
 ipykernel==7.2.0
-ipython==9.11.0
+ipython==9.13.0
 ipython_pygments_lexers==1.1.1
 isoduration==20.11.0
 itsdangerous==2.2.0
@@ -62,7 +62,7 @@ nbdime==4.0.4
 nbformat==5.10.4
 nest-asyncio==1.6.0
 notebook_shim==0.2.4
-numpy==2.5.1
+numpy==2.4.6
 packaging==26.0
 pandas==3.0.3
 pandocfilters==1.5.1
@@ -92,7 +92,7 @@ rfc3339-validator==0.1.4
 rfc3986-validator==0.1.1
 rfc3987-syntax==1.1.0
 rpds-py==0.30.0
-scipy==1.18.0
+scipy==1.17.1
 Send2Trash==2.1.0
 setuptools==82.0.1
 six==1.17.0

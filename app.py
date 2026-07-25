@@ -1,6 +1,7 @@
+
 import streamlit as st
 
-from simulations import bananakick, lorenz, pendulum, charged_particle, coriolis
+from simulations import bananakick, lorenz, pendulum, charged_particle, coriolis, coriolis2 
 
 # -------------------------------------------------------
 # Page Configuration
@@ -130,6 +131,21 @@ if st.session_state.simulation == "home":
             st.rerun()
 
     with col5:
+        st.markdown("### 🎠 Coriolis Effect")
+
+        st.write(
+            """
+            A playful, jargon-light explanation of the Coriolis effect 
+            using the classic "ball on a merry-go-round" story.
+            """
+        )
+
+        if st.button("Launch Merry-Go-Round",
+                use_container_width=True):
+            st.session_state.simulation = "coriolis"
+            st.rerun()
+
+    with col6:
         st.markdown("### 🌍 Coriolis Effect")
 
         st.write(
@@ -141,11 +157,8 @@ if st.session_state.simulation == "home":
 
         if st.button("Launch Coriolis Effect",
                 use_container_width=True):
-            st.session_state.simulation = "coriolis"
+            st.session_state.simulation = "coriolis2"
             st.rerun()
-
-    with col6:
-        st.write("")  # placeholder for future simulation
 
 # -------------------------------------------------------
 # BANANA KICK
@@ -169,6 +182,9 @@ elif st.session_state.simulation == "charged_particle":
 
 elif st.session_state.simulation == "coriolis":
     coriolis.run()
+
+elif st.session_state.simulation == "coriolis2":
+    coriolis2.run()
 
 st.divider()
 
