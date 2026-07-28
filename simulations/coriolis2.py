@@ -34,9 +34,14 @@ hemispheres - exactly matching the textbook Coriolis effect.
 import numpy as np
 import plotly.graph_objects as go
 import streamlit as st
+from pathlib import Path
+ASSET_DIR = Path(__file__).parent.parent / "assets"
 
 
 def run():
+    if st.button("🏠 Back to Home"):
+            st.session_state.simulation = "home"
+            st.rerun()
     # ----------------------------
     # Sidebar controls
     # ----------------------------
@@ -130,9 +135,16 @@ def run():
     # Header + metrics
     # ----------------------------
     st.title("🌍 Coriolis Force: Interactive Rotating-Earth Simulator")
+
     st.caption(
         "Launch a projectile from any latitude and watch it fly in a straight line — while the "
         "rotating Earth beneath it makes the path appear to curve. Toggle frames below to see both."
+    )
+
+    banner = ASSET_DIR / "coriolis.png"
+    st.image(
+        str(banner),
+        use_container_width=True
     )
 
     col_a, col_b, col_c = st.columns(3)
@@ -155,7 +167,7 @@ def run():
         x = R * np.outer(np.cos(u), np.sin(v))
         y = R * np.outer(np.sin(u), np.sin(v))
         z = R * np.outer(np.ones_like(u), np.cos(v))
-        return go.Surface(x=x, y=y, z=z, opacity=0.55,
+        return go.Surface(x=x, y=y, z=z, opacity=0.95,
                            colorscale=[[0, "#bfe3f0"], [1, "#bfe3f0"]],
                            showscale=False, name="Earth", hoverinfo="skip")
 
@@ -245,7 +257,7 @@ def run():
             a0, a1 = seg_idx[k], seg_idx[k + 1]
             frac = (k + 1) / max(n, 1)  # 0 -> 1, brightest at the head
             alpha = 0.12 + 0.85 * frac ** 1.5
-            width = 2 + 7 * frac ** 1.2
+            width = 6 + 7 * frac ** 1.2
             traces.append(go.Scatter3d(
                 x=path[a0:a1 + 1, 0], y=path[a0:a1 + 1, 1], z=path[a0:a1 + 1, 2],
                 mode="lines",
