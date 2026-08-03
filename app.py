@@ -3,6 +3,7 @@ import streamlit as st
 
 from simulations import bananakick, lorenz, pendulum, charged_particle, coriolis, coriolis2 
 
+from simulations import standing, lenses
 # -------------------------------------------------------
 # Page Configuration
 # -------------------------------------------------------
@@ -160,6 +161,50 @@ if st.session_state.simulation == "home":
             st.session_state.simulation = "coriolis2"
             st.rerun()
 
+    st.divider()
+    
+    col7, col8, col9 = st.columns(3)
+    
+    with col7:
+
+        st.markdown("### 🎸 Standing Wave")
+    
+        st.write(
+            """
+            See the classic standing wave — formed by two 
+            traveling waves reflecting off fixed ends and interfering..
+            """
+        )
+    
+        if st.button("Launch Standing Wave",
+                use_container_width=True):
+            st.session_state.simulation = "standing"
+            st.rerun()
+    
+    with col8:
+
+        st.markdown("### 🔍 Image Formation with a Thin Lens")
+    
+        st.write(
+            """
+            Pick a candle, tree, or photograph and watch a real
+            image form on screen as light bends through a lens.
+            """
+        )
+    
+        if st.button("Launch Lenses",
+                use_container_width=True):
+            st.session_state.simulation = "lenses"
+            st.rerun()
+    
+    with col9:
+
+        st.write(
+            """
+            """
+        )
+    
+
 # -------------------------------------------------------
 # BANANA KICK
 # -------------------------------------------------------
@@ -185,6 +230,12 @@ elif st.session_state.simulation == "coriolis":
 
 elif st.session_state.simulation == "coriolis2":
     coriolis2.run()
+
+elif st.session_state.simulation == "standing":
+    standing.run()
+
+elif st.session_state.simulation == "lenses":
+    lenses.run()
 
 st.divider()
 
