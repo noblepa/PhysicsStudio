@@ -3,7 +3,7 @@ import streamlit as st
 
 from simulations import bananakick, lorenz, pendulum, charged_particle, coriolis, coriolis2 
 
-from simulations import standing, lenses
+from simulations import standing, lenses, double_slit
 # -------------------------------------------------------
 # Page Configuration
 # -------------------------------------------------------
@@ -199,10 +199,19 @@ if st.session_state.simulation == "home":
     
     with col9:
 
+        st.markdown("### 🔍 Double Slits")
+    
         st.write(
             """
+            Pick a candle, tree, or photograph and watch a real
+            image form on screen as light bends through a lens.
             """
         )
+    
+        if st.button("Launch Double Slits",
+                use_container_width=True):
+            st.session_state.simulation = "double_slit"
+            st.rerun()
     
 
 # -------------------------------------------------------
@@ -236,6 +245,9 @@ elif st.session_state.simulation == "standing":
 
 elif st.session_state.simulation == "lenses":
     lenses.run()
+
+elif st.session_state.simulation == "double_slit":
+    double_slit.run()
 
 st.divider()
 
