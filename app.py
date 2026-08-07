@@ -167,12 +167,12 @@ if st.session_state.simulation == "home":
     
     with col7:
 
-        st.markdown("### 🎸 Standing Wave")
+        st.markdown("### 🎸 Standing Wave Formation")
     
         st.write(
             """
             See the classic standing wave — formed by two 
-            traveling waves reflecting off fixed ends and interfering..
+            traveling waves reflecting off fixed ends.
             """
         )
     
@@ -183,7 +183,7 @@ if st.session_state.simulation == "home":
     
     with col8:
 
-        st.markdown("### 🔍 Image Formation with a Thin Lens")
+        st.markdown("### 🔍 Image Formation - Thin Lens")
     
         st.write(
             """
@@ -199,12 +199,12 @@ if st.session_state.simulation == "home":
     
     with col9:
 
-        st.markdown("### 🔍 Double Slits")
+        st.markdown("### 🌊 Young's Double-Slit Experiment")
     
         st.write(
             """
-            Pick a candle, tree, or photograph and watch a real
-            image form on screen as light bends through a lens.
+            An interactive recreation of the thought experiments 
+            in Feynman's Lectures on Physics "Quantum Behavior"
             """
         )
     

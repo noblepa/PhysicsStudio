@@ -34,6 +34,8 @@ The four tabs mirror the chapter's four experiments in order (Sec.
 import numpy as np
 import plotly.graph_objects as go
 import streamlit as st
+from pathlib import Path
+ASSET_DIR = Path(__file__).parent.parent / "assets"
 
 
 # ============================================================
@@ -169,6 +171,10 @@ def curves_figure(x, P1, P2, P12, title, show_naive_sum, naive_color="gray"):
 # Main entry point
 # ============================================================
 def run():
+    if st.button("🏠 Back to Home"):
+        st.session_state.simulation = "home"
+        st.rerun()
+
     st.title("🔬 Young's Double Slit: Bullets, Waves, and Electrons")
     st.caption(
         "Recreating the thought experiments from Feynman's Lectures on Physics, Vol. III, Ch. 1, "
@@ -176,6 +182,12 @@ def run():
         "\"the only mystery.\" [Read the original chapter here.]"
         "(https://www.feynmanlectures.caltech.edu/III_01.html)"
     )
+
+    banner = ASSET_DIR / "doubleslit.png"
+    st.image(
+        str(banner),
+        use_container_width=True
+    )  
 
     # ----------------------------
     # Shared sidebar controls
